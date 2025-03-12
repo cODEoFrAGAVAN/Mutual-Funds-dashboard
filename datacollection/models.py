@@ -1,6 +1,7 @@
 from django.db import models
 
 # Create your models here.
+# master_data_len = 50
 class master_data(models.Model):
     unique_no = models.CharField(max_length=50)
     scheme_code = models.CharField(max_length=50)
@@ -10,7 +11,7 @@ class master_data(models.Model):
     amc_code = models.CharField(max_length=50)
     scheme_type = models.CharField(max_length=50)
     scheme_plan = models.CharField(max_length=50)
-    scheme_name = models.CharField(max_length=50)
+    scheme_name = models.CharField(max_length=500)
     purchase_allowed = models.CharField(max_length=50)
     purchase_transaction_mode = models.CharField(max_length=50)
     minimum_purchase_amount = models.CharField(max_length=50)
@@ -45,6 +46,7 @@ class master_data(models.Model):
     lock_in_period = models.CharField(max_length=50)
     channel_partner_code = models.CharField(max_length=50)
     reopening_date = models.CharField(max_length=50)
+    
     
     def __str__(self):
         return self.isin
