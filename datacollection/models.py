@@ -51,4 +51,18 @@ class master_data(models.Model):
     def __str__(self):
         return self.isin
     
-        
+class nav_data(models.Model):
+    isin = models.CharField(max_length=50)
+    aum_in_cr = models.CharField(max_length=50)
+    net_expense_ratio = models.CharField(max_length=50)
+    nav = models.CharField(max_length=50)
+    day_change_in_per = models.CharField(max_length=50)
+    week_change_in_per = models.CharField(max_length=50)
+    month_change_in_per = models.CharField(max_length=50)    
+    ret_in_three_months_per = models.CharField(max_length=50)
+    ret_in_one_year_per = models.CharField(max_length=50)
+    two_year_cagr = models.CharField(max_length=50)
+    five_year_cagr = models.CharField(max_length=50)
+    
+    def __str__(self):
+        return self.isin

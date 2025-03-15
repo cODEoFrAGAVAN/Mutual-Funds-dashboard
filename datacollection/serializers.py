@@ -7,3 +7,7 @@ class Master_data_serializer(ModelSerializer):
         model = master_data
         fields = "__all__"
         
+class Nav_data_serializer(ModelSerializer):
+    class Meta:
+        model = nav_data
+        fields = "__all__"

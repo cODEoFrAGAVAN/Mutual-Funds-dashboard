@@ -7,6 +7,7 @@ from rest_framework.generics import ListCreateAPIView
 from rest_framework.parsers import MultiPartParser,FormParser
 from rest_framework.pagination import PageNumberPagination
 import pandas as pd
+import requests
 # import os
 
 class Master_file_datas(ListCreateAPIView):
@@ -50,14 +51,83 @@ class Master_file_datas(ListCreateAPIView):
             },status=status.HTTP_200_OK
         )
         
+        
+class Nav_datas(ListCreateAPIView):
+    queryset = nav_data.objects.all()
+    serializer_class = Nav_data_serializer
+    
+    def nav_api(self):
+        list1 = [
+            "Multi+%26+Flexi-Cap",
+            "Large-Cap",
+            "Large+%26+Mid-Cap",
+            "Mid-Cap",
+            "Small-Cap",
+            "ELSS",
+            "Dividend+Yield",
+            "Equity+-+Sectoral",
+            "Contra",
+            "Focused+Fund",
+            "Value",
+            "RGESS",
+            "Equity+-+Other",
+            "Fund of Funds",
+            "Index Funds",
+            "Global - Other",
+            "Children",
+            "Retirement",
+            "Low Duration",
+            "Short Duration",
+            "Medium Duration",
+            "Medium to Long Duration",
+            "Long Duration",
+            "Dynamic Bond",
+            "10 yr Government Bond",
+            "Government Bond",
+            "Corporate Bond",
+            "Credit Risk",
+            "Floating Rate",
+            "Banking %26 PSU",
+            "Ultra Short Duration",
+            "Liquid",
+            "Money Market",
+            "Overnight",
+            "Aggressive Allocation",
+            "Arbitrage Fund",
+            "Dynamic Asset Allocation",
+            "Multi Asset Allocation",
+            "Conservative Allocation",
+            "Balanced Allocation",
+        ]
+
+        for item in list1:
+            url = "https://trendlyne.com/mutual-fund/getMFdata/?category=Large-Cap&plan=Direct"
+
+            payload = {}
+            headers = {
+            'Cookie': 'csrftoken=sYR4IBVMBqmNAD8Ienyfkwnyb5dZUGUyVMCqqaSh2DWwMYnIMLIfJlDPi2FP4mlj'
+            }
+
+            response = requests.request("GET", url, headers=headers, data=payload)
+
+            print(response.text)
+
 class CustomPagination(PageNumberPagination):
     page_size = 10  # Default page size
     page_size_query_param = 'page_size'  # Allows clients to specify page size
     max_page_size = 100  # Maximum page size allowed
 class Over_all_stats(ListCreateAPIView):
-    queryset = master_data.objects.all()
+    # queryset = master_data.objects.all()
     serializer_class = Master_data_serializer
     pagination_class = CustomPagination
+    
+    def get_queryset(self):
+        queryset = master_data.objects.all()
+        request = self.request
         
+        funds:str = request.query_params.get("funds","")
+        if funds:
+            queryset = queryset.filter(scheme_plan=funds.upper())
+        return queryset        
         
         
