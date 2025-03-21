@@ -9,5 +9,5 @@ class Master_data_serializer(ModelSerializer):
         
 class Nav_data_serializer(ModelSerializer):
     class Meta:
-        model = nav_data
+        model = Nav_datas
         fields = "__all__"

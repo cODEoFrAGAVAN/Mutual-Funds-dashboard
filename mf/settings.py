@@ -11,13 +11,14 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
-from dotenv import load_dotenv
-import os
-load_dotenv()
-DB_HOST = os.getenv("DB_HOST")
-DB_NAME = os.getenv("DB_NAME")
-DB_USER = os.getenv("DB_USER")
-DB_PASS = os.getenv("DB_PASS")
+# from dotenv import load_dotenv
+# import os
+# load_dotenv()
+# DB_HOST = str(os.getenv('DB_HOST'))
+# DB_NAME = str(os.getenv('DB_NAME'))
+# DB_USER = str(os.getenv('DB_USER'))
+# DB_PASS = str(os.getenv('DB_PASS'))
+# DB_PORT = str(os.getenv('DB_PORT'))
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -90,13 +91,24 @@ DATABASES = {
     # }
     "default":{
         "ENGINE":"django.db.backends.postgresql",
-        "NAME":DB_NAME,
-        "USER":DB_USER,
-        "PASSWORD":DB_PASS,
-        "HOST":DB_HOST,
+        "NAME":"mf",
+        "USER":"postgres",
+        "PASSWORD":"Ragavan*1",
+        "HOST":"localhost",
         "PORT":"5432"
     }
 }
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': os.getenv('POSTGRES_DB', 'mydatabase'),
+#         'USER': os.getenv('POSTGRES_USER', 'myuser'),
+#         'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'mypassword'),
+#         'HOST': os.getenv('POSTGRES_HOST', 'db'),  # Use Docker service name instead of 'localhost'
+#         'PORT': os.getenv('POSTGRES_PORT', '5432'),
+#     }
+# }
 
 
 # Password validation
