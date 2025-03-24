@@ -8,6 +8,8 @@ from rest_framework.parsers import MultiPartParser,FormParser
 from rest_framework.pagination import PageNumberPagination
 import pandas as pd
 import requests,time
+from io import StringIO
+import traceback
 # import os
 
 class Master_file_datas(ListCreateAPIView):
@@ -133,12 +135,12 @@ class Master_file_datas(ListCreateAPIView):
 
 
 
-class Nav_Datas(ListCreateAPIView):
-    queryset = Nav_datas.objects.all()
-    serializer_class = Nav_data_serializer
+class Aum_datas(ListCreateAPIView):
+    queryset = Aum_datas.objects.all()
+    serializer_class = Aum_datas_serializer
     
-    def fetch_and_store_nav_data(self):
-        Nav_datas.objects.all().delete()
+    def fetch_and_store_aum_data(self):
+        Aum_datas.objects.all().delete()
         list1 = [
             "Multi+%26+Flexi-Cap",
             "Large-Cap",
@@ -183,12 +185,14 @@ class Nav_Datas(ListCreateAPIView):
         ]
         list2 = ["Direct", "Regular"]
 
-        data_objects = []
-        
+        # data_objects = []
+        print(" :: Trendy data :: ")
+        main_df = pd.DataFrame()
         for item in list1:
             for plan in list2:
+                print("loading...")
                 url = f"https://trendlyne.com/mutual-fund/getMFdata/?category={item}&plan={plan}"
-                
+                # print("url :: ",url)
                 headers = {
                     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
                 }
@@ -210,51 +214,64 @@ class Nav_Datas(ListCreateAPIView):
 
                 data_list = []
                 for datas in _json["body"]["tableData"]:
-                    pr
                     if len(datas) < 6:
+                        print(" :: url :: ",url," :: skipped :: ")
                         continue  # Ensure sufficient data
                     sub_list1 = [
                         datas[0].get("isin", ""),
-                        datas[5],
-                        datas[6],
-                        datas[7],
-                        datas[8],
-                        datas[9],
-                        datas[10],
-                        datas[11],
-                        datas[12],
-                        datas[13],
-                        datas[14],
+                        datas[0].get("name",""),
+                        datas[5] if datas[5] else "",
+                        datas[6] if datas[6] else "",
+                        # datas[7] if datas[7] else "",
+                        # datas[8] if datas[8] else "",
+                        # datas[9] if datas[9] else "",
+                        # datas[10] if datas[10] else "",
+                        # datas[11] if datas[11] else "",
+                        # datas[12] if datas[12] else "",
+                        # datas[13] if datas[13] else "",
+                        # datas[14] if datas[14] else "",
+                        # datas[15] if datas[15] else "",
+                        datas[-2] if datas[-2] else "",
+                        datas[-1] if datas[-1] else "",
                         plan,
                         item.replace("%26", "&").replace("+", " ")  # Fix category string
                     ]
                     data_list.append(sub_list1)
 
                 df = pd.DataFrame(data_list, columns=[
-                    "isin", "aum_in_cr", "net_expense_ratio", "nav", "day_change_in_per", "week_change_in_per",
-                    "month_change_in_per", "ret_in_three_months_per", "ret_in_one_year_per", "two_year_cagr","three_year_cagr",
-                    "five_year_cagr", "plan", "category"
-                ])
+                    "isin","src_name","aum_in_cr", "net_expense_ratio","three_year_cagr",
+                    "five_year_cagr", "plan", "category"])
                 df = df.fillna("")
                 df = df.astype(str)
                 df = df.reset_index(drop=True)
-                df["temp_unique_number"] = ""
-                print("df.columns :: ",df.columns)
-                for index,row in df.iterrows():
-                    df.loc[index,"temp_unique_number"] = int(index)+1
-                datas1 = df.to_dict(orient="records")
-                print(datas1[0])
-                data_objects.append([Nav_datas(**data) for data in datas1])
-                if data_objects:
-                    Nav_datas.objects.bulk_create(data_objects)
-                time.sleep(5)
-            time.sleep(5)# Avoid rapid API hits
+                # df["temp_unique_number"] = ""
+                # print("df.columns :: ",df.columns)
+                # for index,row in df.iterrows():
+                #     df.loc[index,"temp_unique_number"] = int(index)+1
+                # datas1 = df.to_dict(orient="records")
+                # print(datas1[0])
+                # data_objects.append([Nav_datas(**data) for data in datas1])
+                # if data_objects:
+                #     Nav_datas.objects.bulk_create(data_objects)
+                main_df = pd.concat([main_df,df],axis=0,ignore_index=True)
+                # time.sleep(1)
+            # time.sleep(1)# Avoid rapid API hits
+        main_df["temp_unique_number"] = 0
+        for index,row in main_df.iterrows():
+            main_df.loc[index,"temp_unique_number"] = int(index)+1
+        datas1 = main_df.to_dict(orient="records")
+        data_objects = [Aum_datas(**data) for data in datas1]
+        if data_objects:
+            Aum_datas.objects.bulk_create(data_objects)
 
         return {"msg": "Data updated"}
 
     def post(self, request, *args, **kwargs):
-        result = self.fetch_and_store_nav_data()
+        result = self.fetch_and_store_aum_data()
         return Response(result, status=status.HTTP_200_OK)
+
+
+
 
 class CustomPagination(PageNumberPagination):
     page_size = 10  # Default page size
@@ -275,3 +292,47 @@ class Over_all_stats(ListCreateAPIView):
         return queryset        
         
         
+class Nav_Datas(ListCreateAPIView):
+    queryset = Nav_datas.objects.all()
+    serializer_class = Nav_datas_serializer
+
+    def fetch_and_store_nav_data(self):
+        try:
+            Nav_datas.objects.all().delete()
+        except:
+            pass
+
+        url = "https://www.amfiindia.com/spages/NAVAll.TXT"
+        payload = {}
+        headers = {}
+        response = requests.request("GET", url, headers=headers, data=payload, timeout=20)
+        print("Response Done")
+        df = pd.read_csv(StringIO(response.text), delimiter=";")
+        df.columns = [
+            "scheme_code",
+            "isin",
+            "isin_div_reinversment",
+            "scheme_name",
+            "nav",
+            "dates",
+        ]
+        df = df.astype(str)
+        df["temp_unique_number"] = 0
+        for index,row in df.iterrows():
+            df.loc[index,"temp_unique_number"] = int(index)+1
+        datas = df.to_dict(orient="records")
+        data_objects = [Nav_datas(**i)for i in datas]
+        if data_objects:
+            Nav_datas.objects.bulk_create(data_objects)
+        return {"msg": "Data updated"}
+    def post(self,request,*args,**kwargs):
+        try:
+            result = self.fetch_and_store_nav_data()
+            return Response(result,status=status.HTTP_200_OK)
+        except Exception as e:
+            print(" Error :: ",e)
+            print("traceback :: ",traceback.format_exc())
+            return Response("Error")
+        
+
+
